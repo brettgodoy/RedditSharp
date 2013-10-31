@@ -26,6 +26,7 @@ namespace RedditSharp
         private const string FlairSelectorUrl = "/api/flairselector";
         private const string AcceptModeratorInviteUrl = "/api/accept_moderator_invite";
         private const string LeaveModerationUrl = "/api/unfriend";
+        private const string BanUserUrl = "/api/friend";
         private const string ModeratorsUrl = "/r/{0}/about/moderators.json";
         private const string FrontPageUrl = "/.json";
         private const string SubmitLinkUrl = "/api/submit";
@@ -381,7 +382,7 @@ namespace RedditSharp
             {
                 api_type = "json",
                 kind = "self",
-                sr = Title,
+                sr = Name,
                 text = text,
                 title = title,
                 uh = Reddit.User.Modhash
@@ -391,6 +392,25 @@ namespace RedditSharp
             var json = JToken.Parse(result);
             return new Post(Reddit, json["json"], WebAgent);
             // TODO: Error
+        }
+
+        public void BanUser(string user, string reason)
+        {
+            var request = WebAgent.CreatePost(BanUserUrl);
+            WebAgent.WritePostBody(request.GetRequestStream(), new
+                                   {
+                api_type = "json",
+                uh = Reddit.User.Modhash,
+                r = Name,
+                type = "banned",
+                id = "#banned",
+                name = user,
+                note = reason,
+                action = "add",
+                container = FullName
+            });
+            var response = request.GetResponse();
+            var result = WebAgent.GetResponseString(response.GetResponseStream());
         }
 
         /// <summary>
@@ -409,7 +429,7 @@ namespace RedditSharp
                 api_type = "json",
                 extension = "json",
                 kind = "link",
-                sr = Title,
+                sr = Name,
                 title = title,
                 uh = Reddit.User.Modhash,
                 url = url
